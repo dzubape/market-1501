@@ -1,0 +1,6 @@
+.gitignore
+*.hdh5
+*.json
+*.png
+*.zip
+*.tar.gz
