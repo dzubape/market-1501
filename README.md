@@ -64,6 +64,6 @@
 
 Loss-функция - [Contrastive Loss](http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf) (Hadsell, Chopra, Lecun).
 
-Код решения разбит на модули. Точка входа для запуска тестового решения - файл [krokker.py](https://bitbucket.org/dzubape/market-1501/src/master/krokker.py)
+Код решения разбит на модули. Точка входа для запуска тестового решения - файл [krokker.py](https://github.com/dzubape/market-1501/blob/master/krokker.py)
 
-Для отладки через веб-интерфейс в среде Jupyter можно воспользоваться ноутбуком [main.ipynb](https://bitbucket.org/dzubape/market-1501/src/master/main.ipynb)
+Для отладки через веб-интерфейс в среде Jupyter можно воспользоваться ноутбуком [main.ipynb](https://github.com/dzubape/market-1501/blob/master/main.ipynb)
