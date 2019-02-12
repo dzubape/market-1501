@@ -9,9 +9,6 @@ from keras.layers import Conv2D, Dense, MaxPooling2D, Flatten, Dropout, Input, L
 from keras import backend as K
 from keras.callbacks import TensorBoard
 
-try: last_train_start
-except: last_train_start=None
-
 class TimeMark:
     def __init__(self):
         self._mark = None
@@ -27,7 +24,11 @@ class TimeMark:
     def __call__(self):
         return self._mark
 
-last_train_start = TimeMark()    
+    
+try:
+    last_train_start
+except:
+    last_train_start = TimeMark()  
 
 
 def euclidean_distance(vects):
@@ -125,7 +126,7 @@ def create_base_network_03(input_shape):
 
 
 def create_base_network(input_shape):
-    return create_base_network_04(input_shape)
+    return create_base_network_01(input_shape)
 
 
 def compute_accuracy(y_true, y_pred):
@@ -167,6 +168,10 @@ def build_model(input_shape):
     
     model = Model([input_a, input_b], distance)
     
+    return model
+
+
+def compile_model(model):    
     ## Test optimizers
     optimizer = keras.optimizers.Adagrad() ## bad
     optimizer = keras.optimizers.RMSprop() ## bad
