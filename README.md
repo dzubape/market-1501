@@ -64,6 +64,28 @@
 
 Loss-функция - [Contrastive Loss](http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf) (Hadsell, Chopra, Lecun).
 
-Код решения разбит на модули. Точка входа для запуска тестового решения - файл [krokker.py](https://github.com/dzubape/market-1501/blob/master/krokker.py)
+Код решения разбит на модули. Точка входа для запуска тестового решения - файл [krokker.py](https://github.com/dzubape/market-1501/blob/master/krokker.py). 
 
-Для отладки через веб-интерфейс в среде Jupyter можно воспользоваться ноутбуком [main.ipynb](https://github.com/dzubape/market-1501/blob/master/main.ipynb)
+Для тренировки сети реализовано два класса:
+
+* class DatasetManager - для генерации hdh5-хранилища на основе изображений из директорий bounding_box_train и bounding_box_train, а также предоставления последующего доступа к хранилищу
+
+* class UniformGenerator - наследник keras.utils.Sequence, имплементирующий интерфейс для генерации набора батчей данных на одну эпоху
+
+Тренировка сети производилась на наборе данных из директории bounding_box_train. UniformGenerator генерировал батчи из пар свой-свой, свой-чужой в заданном соотношении (1/1, 1/9, 3/2). Размер батча 128, количество батчей в эпохе 20, количество эпох - до 2000.
+
+Для тестирования сети реализованы также два генератора на базе keras.utils.Sequence:
+
+* class SiamTestGenerator - для тестирования train-модели в целом
+
+* class SoloTestGenerator - для тестирования базовой модели, отображающей изображение на входе в n-мерное пространство (n выбран размерностью 128)
+
+Тестирование модели и построение выходных графиков с характеристиками сети реализовано в модуле [NetTest.py](https://github.com/dzubape/market-1501/blob/master/NetTest.py).
+
+Тестирование проводилось на выборках из директории bounding_box_test, генерируемых SoloTestGenerator, который в качестве параметра принимает количество персонажей (групп), перекрёстную совокупность которых необходимо протестировать.
+
+Cumulative Metrics Characteristics:
+
+![CMC img](https://i.ibb.co/pxkX4pb/1024-128-sgd-200-CMC-750-gr.png)
+
+Для отладки через веб-интерфейс в среде Jupyter можно воспользоваться ноутбуком [main.ipynb](https://github.com/dzubape/market-1501/blob/master/main.ipynb).
