@@ -4,6 +4,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from UniformGenerator import UniformGenerator
+import os, re
+
+def get_img_path(img_name):
+    img_dir = "plot"
+    img_name = re.sub(r"[ ;:,()]+", "_", img_name)
+    img_name = re.sub(r"_(?=\.[^.]+$)", "", img_name)
+    return os.path.join(img_dir, img_name)
 
 def test_loss_acc(model, dataset_manager, test_samples_count):
     '''Tests model on train set sub-samples'''
@@ -105,8 +112,8 @@ def test_base_model(model, data_generator, test_count=-1):
     print("accuracy: {}".format(y_acc))
     
     ## Отрисовка распределения ошибок sim/dis ##
-    fig = plt.figure(figsize=(4, 2), dpi=112)
-    fig_title = "1024-128-sgd-200, Error spread ({} gr.)".format(test_count)
+    fig = plt.figure(figsize=(4, 2), dpi=96)
+    fig_title = "1024-128-sgd, Error spread ({} gr)".format(test_count)
     y_end = np.stack((y_pred, y_true, y_true == (y_pred > 0.5)), axis=-1)
     y_sim_err = {i: trio[0] for i, trio in enumerate(y_end) if not trio[2] and not trio[1]}
     y_dis_err = {i: trio[0] for i, trio in enumerate(y_end) if not trio[2] and trio[1]}
@@ -114,53 +121,76 @@ def test_base_model(model, data_generator, test_count=-1):
     err_ax = plt.subplot(1, 1, 1)
     err_ax.set_title(fig_title)
     err_ax.plot(y_pred, "y,")
-    err_ax.plot(list(y_sim_err.keys()), list(y_sim_err.values()), "g+")    
-    err_ax.plot(list(y_dis_err.keys()), list(y_dis_err.values()), "r,")
-    fig.savefig("{}.png".format(fig_title))
+    plt.xticks((0, len(y_end)))
+    err_ax.plot(list(y_sim_err.keys()), list(y_sim_err.values()), "g," if len(y_sim_err) > 0.25 * len(y_end) else "g+")    
+    err_ax.plot(list(y_dis_err.keys()), list(y_dis_err.values()), "r," if len(y_dis_err) > 0.25 * len(y_end) else "r+")
+    fig.savefig(get_img_path("{}.png".format(fig_title)))
     ####
     
-    ## формируем ранги ##
-    rank_list = np.full((len(test_person_list),), len(test_person_list), dtype=np.int32)
+    ## выявляем ранг для каждого класса ##
+    person_rank_list = np.full(
+        (len(test_person_list),),
+        len(test_person_list),
+        dtype=np.int32
+    )
     for i, group in enumerate(test_person_list):
         sim_dist = group["sim"][0]
         for j, dis_dist in enumerate(group["dis"]):
             if sim_dist <= dis_dist:
-                rank_list[i] = j
+                person_rank_list[i] = j + 1
                 break
     
     #print("rank_list:", rank_list)
     
-    ## выявляем ранг для каждого класса ##
-    cmc_dict = dict()
-    for rank in rank_list:
-        if rank not in cmc_dict:
-            cmc_dict[rank] = 1
+    ## формируем словарь с рейтингами рангов ##
+    rank_rate_dict = dict()
+    for rank in person_rank_list:
+        if rank not in rank_rate_dict:
+            rank_rate_dict[rank] = 1
         else:
-            cmc_dict[rank] += 1
+            rank_rate_dict[rank] += 1
             
-    worst_rank = max(cmc_dict.keys())
+    ## разворачиваем словарь на отрезке,
+    ## от первого до максимального ранга
+    ## плюс нулевой
+    worst_rank = max(rank_rate_dict.keys())
     rank_rate_list = np.full((worst_rank + 1,), 0, dtype=np.int32)
-    for rank, rate in cmc_dict.items():
+    for rank, rate in rank_rate_dict.items():
         rank_rate_list[rank] = rate
+        
+    #rank_rate_list = rank_rate_list[1:]
     
     cmc_list = np.zeros_like(rank_rate_list, dtype=np.float32)
     rate_acc = 0
     for rank, rate in enumerate(rank_rate_list):
-        if rate > 0:
-            rate_acc += rate
+        rate_acc += rate
         cmc_list[rank] = rate_acc
     cmc_list /= test_count
     
     ## отрисовка графика CMC ##
-    fig = plt.figure(figsize=(10, 3), dpi=112)
-    fig_title = "1024-128-sgd-200, CMC ({} gr.)".format(test_count)
+    fig = plt.figure(figsize=(10, 3), dpi=96)
+    fig_title = "1024-128-sgd, CMC ({} gr)".format(test_count)
     cmc_ax = plt.subplot(1, 1, 1)
     cmc_ax.set_xlabel("rank")
     cmc_ax.set_ylabel("rate")
     cmc_ax.set_title(fig_title)
-    cmc_ax.plot(cmc_list)    
-    fig.savefig("{}.png".format(fig_title))
+    cmc_xlabel = np.arange(0, len(cmc_list))
+    step = int(len(cmc_list[1:]) / 10)
+    counter = 0
+    while step > 10:
+        step /= 5
+        counter += 1
+    step = int(step)
+    for i in range(counter):
+        step *= 5
+    #step = int(step / 5) * 5
+    step = max(1, step)
+    plt.xticks(cmc_xlabel[0::step] + 1)
+    line_list = cmc_ax.plot(cmc_xlabel[1:], cmc_list[1:], "b-")
+    fig.savefig(get_img_path("{}.png".format(fig_title)))
     ####
+    
+    return
     
     acc_rank = 0
     for rank, rate in enumerate(cmc_list):   

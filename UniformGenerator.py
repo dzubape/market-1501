@@ -111,7 +111,7 @@ class UniformGenerator(keras.utils.Sequence):
     def generate_pairs(self):
         '''Делаем новый парный замес'''
         
-        neg_count = int(self.epoch_size * 0.9)
+        neg_count = int(self.epoch_size * 0.4)
         pos_count = self.epoch_size - neg_count
         
         pos_samples = self.generate_pos(pos_count)

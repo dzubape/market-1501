@@ -8,9 +8,19 @@ from keras.models import Sequential
 from keras.layers import Conv2D, Dense, MaxPooling2D, Flatten, Dropout, Input, Lambda
 from keras import backend as K
 from keras.callbacks import TensorBoard
+import os
 
-try: last_train_start
-except: last_train_start=None
+def get_model_paths(mark):
+    model_dir = "model"
+    
+    struct_filename = "model_{}.json".format(mark)
+    struct_filepath = os.path.join(model_dir, struct_filename)
+    
+    weights_filename = "model_{}.hdh5".format(mark)
+    weights_filepath = os.path.join(model_dir, weights_filename)
+    
+    return struct_filepath, weights_filepath
+    
 
 class TimeMark:
     def __init__(self):
@@ -27,7 +37,11 @@ class TimeMark:
     def __call__(self):
         return self._mark
 
-last_train_start = TimeMark()    
+    
+try:
+    last_train_start
+except:
+    last_train_start = TimeMark()  
 
 
 def euclidean_distance(vects):
@@ -125,7 +139,7 @@ def create_base_network_03(input_shape):
 
 
 def create_base_network(input_shape):
-    return create_base_network_04(input_shape)
+    return create_base_network_01(input_shape)
 
 
 def compute_accuracy(y_true, y_pred):
@@ -167,6 +181,10 @@ def build_model(input_shape):
     
     model = Model([input_a, input_b], distance)
     
+    return model
+
+
+def compile_model(model):    
     ## Test optimizers
     optimizer = keras.optimizers.Adagrad() ## bad
     optimizer = keras.optimizers.RMSprop() ## bad
@@ -197,46 +215,40 @@ def fit_this_feet(model, data_generator, epoch_count=20, thread_count=3):
     )
     
     
-def save_model(model, mark=None, suffix=None):
+def save_model(model, mark=None):
     
     if mark is None:
         from time import strftime, gmtime, localtime
         slice_time = strftime("%Y-%m-%d_%H-%M-%S", localtime())
         mark = slice_time
-    
-    if suffix is not None:
-        mark += "_{}".format(suffix)
+        
+    struct_filepath, weights_filepath = get_model_paths(mark)
 
     ## serialize model to json
-    struct_filename = "model_{}.json".format(mark)
-    with open(struct_filename, "w") as json_file:
+    with open(struct_filepath, "w") as json_file:
         model_json = model.to_json()
         json_file.write(model_json)
-        print("Model struct has been stored as {}".format(struct_filename))
+        print("Model struct has been stored on {}".format(struct_filepath))
 
     ## serialize weights to HDF5
-    weights_filename = "model_{}.hdh5".format(mark)
-    model.save_weights(weights_filename)
-    print("Model weights has been stored as {}".format(weights_filename))
+    model.save_weights(weights_filepath)
+    print("Model weights has been stored on {}".format(weights_filepath))
     
     
-def load_model(mark, suffix=None):
+def load_model(mark):
     from keras.models import model_from_json
     
-    if suffix is not None:
-        mark += "_{}".format(suffix)
+    struct_filepath, weights_filepath = get_model_paths(mark)
     
     ## Loads model struct
-    struct_filename = "model_{}.json".format(mark)
-    json_file = open(struct_filename, 'r')
+    json_file = open(struct_filepath, 'r')
     model_json = json_file.read()
     json_file.close()
     
     loaded_model = model_from_json(model_json)
     
     ## Loads weights into the model
-    weights_filename = "model_{}.hdh5".format(mark)
-    loaded_model.load_weights(weights_filename)
+    loaded_model.load_weights(weights_filepath)
     
     return loaded_model
 
