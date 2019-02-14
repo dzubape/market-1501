@@ -84,8 +84,20 @@ Loss-функция - [Contrastive Loss](http://yann.lecun.com/exdb/publis/pdf/h
 
 Тестирование проводилось на выборках из директории bounding_box_test, генерируемых SoloTestGenerator, который в качестве параметра принимает количество персонажей (групп), перекрёстную совокупность которых необходимо протестировать.
 
-Cumulative Metrics Characteristics:
+Cumulative Metrics Characteristics для тестирования на группах из 10, 50 и 100 персонажей:
 
-![CMC img](https://i.ibb.co/pxkX4pb/1024-128-sgd-200-CMC-750-gr.png)
+![erspr 10](plot/1024-128-sgd_CMC_10_gr.png)
+
+![erspr 50](plot/1024-128-sgd_CMC_50_gr.png)
+
+![erspr 100](plot/1024-128-sgd_CMC_100_gr.png)
+
+Распределение ошибок первого (зелёным) и второго (красным) рода:
+
+![CMC 10](plot/1024-128-sgd_Error_spread_10_gr.png)
+
+![CMC 50](plot/1024-128-sgd_Error_spread_50_gr.png)
+
+![CMC 100](plot/1024-128-sgd_Error_spread_100_gr.png)
 
 Для отладки через веб-интерфейс в среде Jupyter можно воспользоваться ноутбуком [main.ipynb](https://github.com/dzubape/market-1501/blob/master/main.ipynb).
